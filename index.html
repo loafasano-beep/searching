@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SEARCHING</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Syne:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="is-onboarding">
+    <main class="experience" aria-label="Live trend wall">
+      <canvas id="wall-canvas" aria-label="Live Google Trends wall"></canvas>
+      <canvas id="grain-canvas" aria-hidden="true"></canvas>
+
+      <header class="hud">
+        <div class="hud-copy">
+          <p class="hud-kicker">Live Search Wall</p>
+          <h1 class="hud-title">SEARCHING</h1>
+          <p id="hud-deck" class="hud-deck">Live Google Trends, translated into one atmospheric field.</p>
+          <p id="hud-help" class="hud-help">Hover to inspect · Click to lock · Click again to focus · H hides the UI · Esc steps back</p>
+          <div class="hud-meta">
+            <span id="status-pill" class="status-pill">OFFLINE</span>
+          </div>
+        </div>
+        <div class="hud-actions">
+          <button id="guide-toggle" class="hud-button" type="button">Guide</button>
+          <button id="chrome-toggle" class="hud-button" type="button">Hide Data</button>
+        </div>
+      </header>
+
+      <section id="onboarding" class="onboarding" aria-label="Onboarding">
+        <div class="onboarding-copy">
+          <p id="onboarding-step" class="eyebrow">01 / 04</p>
+          <h2 id="onboarding-heading" class="onboarding-title">Welcome to the live trend wall.</h2>
+          <p id="onboarding-text" class="onboarding-text">This view turns current Google Trend signals into a live, readable field of clusters.</p>
+          <dl class="specimen-list">
+            <div>
+              <dt>Live Search</dt>
+              <dd id="entry-title">Fetching signal</dd>
+            </div>
+            <div>
+              <dt>Category</dt>
+              <dd id="entry-category">Other</dd>
+            </div>
+            <div>
+              <dt>Source</dt>
+              <dd id="entry-source">Google Trends RSS</dd>
+            </div>
+          </dl>
+          <p id="onboarding-note" class="onboarding-note">Use the quick guide to learn the wall, or skip directly into the full experience.</p>
+          <div class="onboarding-actions">
+            <button id="skip-button" class="hud-button" type="button">Skip to Wall</button>
+            <button id="enter-button" class="enter-button" type="button">Start Walkthrough</button>
+          </div>
+        </div>
+        <div class="onboarding-visual">
+          <canvas id="specimen-canvas" aria-label="Onboarding specimen"></canvas>
+          <div class="callout callout-search">
+            <i></i><span></span>
+            <p><b>LIVE SEARCH</b><em id="callout-title">Active search signal</em></p>
+          </div>
+          <div class="callout callout-category">
+            <i></i><span></span>
+            <p><b>RING FIELD</b><em id="callout-category">Traffic level shown by ring count</em></p>
+          </div>
+          <div class="callout callout-structure">
+            <i></i><span></span>
+            <p><b>TEXTURE FIELD</b><em id="callout-structure">Category and search text shape the visual detail.</em></p>
+          </div>
+        </div>
+      </section>
+
+      <details id="controls" class="controls">
+        <summary>
+          <span class="controls-kicker">Customize View</span>
+          <span class="controls-copy">Refine motion, connections, and color staging.</span>
+        </summary>
+        <div class="controls-body">
+          <label class="control-field" for="motion-range">
+            <span>Motion Energy</span>
+            <input id="motion-range" type="range" min="0.5" max="1.4" step="0.05" value="0.85" />
+          </label>
+          <label class="control-field" for="connection-range">
+            <span>Connection Density</span>
+            <input id="connection-range" type="range" min="0.4" max="1.6" step="0.05" value="1" />
+          </label>
+          <label class="control-field" for="contrast-range">
+            <span>Signal Contrast</span>
+            <input id="contrast-range" type="range" min="0.8" max="1.4" step="0.05" value="1" />
+          </label>
+          <div class="control-row">
+            <label class="control-field control-select" for="category-select">
+              <span>Category Color</span>
+              <select id="category-select"></select>
+            </label>
+            <label class="control-field control-color" for="category-color">
+              <span>Color</span>
+              <input id="category-color" type="color" value="#9ad9ff" />
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <aside id="wall-tip" class="wall-tip" hidden aria-live="polite">
+        <p class="wall-tip-kicker">Quick Start</p>
+        <h3 class="wall-tip-title">Try the wall.</h3>
+        <p class="wall-tip-copy">Hover to preview. Click to hold. Click again to zoom in. Press H to hide the interface.</p>
+        <button id="wall-tip-close" class="wall-tip-close" type="button">Got it</button>
+      </aside>
+
+      <aside id="inspector" class="inspector" aria-live="polite">
+        <p class="inspector-kicker">Current Signal</p>
+        <h3 id="inspector-title" class="inspector-title">Explore the field</h3>
+        <p id="inspector-summary" class="inspector-summary">Hover or click a cluster.</p>
+        <dl class="inspector-grid">
+          <dt>Category</dt>
+          <dd id="inspector-category">-</dd>
+          <dt>Source</dt>
+          <dd id="inspector-source">-</dd>
+          <dt>Published</dt>
+          <dd id="inspector-published">-</dd>
+        </dl>
+        <a id="inspector-link" class="inspector-link" href="#" target="_blank" rel="noreferrer" hidden>Open source</a>
+      </aside>
+
+      <section id="guide" class="guide" hidden>
+        <div class="guide-card">
+          <p class="guide-kicker">Reading Guide</p>
+          <h2 class="guide-title">How the wall turns live attention into motion.</h2>
+          <p class="guide-intro">
+            The wall updates from Google Trends and turns current search activity into a field of living clusters. Each cluster starts with one search, then builds outward through category, traffic, texture, and relation to nearby signals.
+          </p>
+          <div class="guide-grid">
+            <div>
+              <h3>Source</h3>
+              <p>The live feed drives cluster text, category, traffic, and source details shown on the wall.</p>
+            </div>
+            <div>
+              <h3>Category</h3>
+              <p>Each category defines the palette and the style of the cluster, while the search text adds unique detail.</p>
+            </div>
+            <div>
+              <h3>Scale</h3>
+              <p>Traffic affects cluster size and ring density, so higher activity looks larger and brighter.</p>
+            </div>
+            <div>
+              <h3>Motion</h3>
+              <p>Motion is subtle. Drift and rotation keep the field alive without distracting from the data.</p>
+            </div>
+            <div>
+              <h3>Connections</h3>
+              <p>Lines show visual proximity, not causation, and help the wall read as a shared landscape.</p>
+            </div>
+            <div>
+              <h3>Navigation</h3>
+              <p>Hover to inspect a cluster. Click once to lock your view on it. Press H to hide the interface for a clean gallery view, and press Esc to step back.</p>
+            </div>
+            <div>
+              <h3>Focus Mode (Close-Up)</h3>
+              <p>Double-click any cluster (or click a locked cluster again) to enter Focus Mode. This isolates the signal so you can inspect its individual layers, from rings to texture.</p>
+            </div>
+            <div>
+              <h3>Onboarding</h3>
+              <p>The walkthrough uses one live example so the visual mapping is easy to follow before the full field appears.</p>
+            </div>
+          </div>
+          <button id="guide-close" class="guide-close" type="button">Return to wall</button>
+        </div>
+      </section>
+
+      <section id="focus" class="focus" hidden>
+        <div class="focus-stage">
+          <canvas id="focus-canvas" aria-label="Focused cluster"></canvas>
+          <button class="focus-marker marker-glow" data-attribute="glow" type="button"><i></i><span></span><p>Glow</p></button>
+          <button class="focus-marker marker-rings" data-attribute="rings" type="button"><i></i><span></span><p>Rings</p></button>
+          <button class="focus-marker marker-shape" data-attribute="shape" type="button"><i></i><span></span><p>Shape</p></button>
+          <button class="focus-marker marker-color" data-attribute="color" type="button"><i></i><span></span><p>Color</p></button>
+          <button class="focus-marker marker-texture" data-attribute="texture" type="button"><i></i><span></span><p>Texture</p></button>
+          <button class="focus-marker marker-connections" data-attribute="connections" type="button"><i></i><span></span><p>Links</p></button>
+          <button class="focus-marker marker-motion" data-attribute="motion" type="button"><i></i><span></span><p>Motion</p></button>
+        </div>
+        <aside class="focus-panel">
+          <div class="focus-topline">
+            <div>
+              <p class="focus-kicker">Cluster Focus</p>
+              <h2 id="focus-title" class="focus-title">Signal</h2>
+            </div>
+            <button id="focus-close" class="focus-close" type="button">Exit</button>
+          </div>
+          <dl class="focus-grid">
+            <div><dt>Category</dt><dd id="focus-category">-</dd></div>
+            <div><dt>Source</dt><dd id="focus-source">-</dd></div>
+            <div><dt>Published</dt><dd id="focus-published">-</dd></div>
+            <div><dt>Feed</dt><dd>Google Trends RSS</dd></div>
+          </dl>
+          <p id="focus-copy" class="focus-copy">One search, translated into form.</p>
+          <div class="focus-probes" aria-label="Cluster attributes">
+            <button class="focus-probe is-active" data-attribute="overview" type="button">Overview</button>
+            <button class="focus-probe" data-attribute="glow" type="button">Glow</button>
+            <button class="focus-probe" data-attribute="rings" type="button">Rings</button>
+            <button class="focus-probe" data-attribute="shape" type="button">Shape</button>
+            <button class="focus-probe" data-attribute="color" type="button">Color</button>
+            <button class="focus-probe" data-attribute="texture" type="button">Texture</button>
+            <button class="focus-probe" data-attribute="connections" type="button">Links</button>
+            <button class="focus-probe" data-attribute="motion" type="button">Motion</button>
+          </div>
+          <div class="focus-detail">
+            <p class="focus-kicker">Active Attribute</p>
+            <h3 id="focus-detail-title" class="focus-detail-title">Overview</h3>
+            <p id="focus-detail-body" class="focus-detail-body">Hover the markers around the cluster to see what data is shaping each layer.</p>
+          </div>
+          <a id="focus-link" class="focus-link" href="#" target="_blank" rel="noreferrer" hidden>Open source</a>
+        </aside>
+      </section>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
