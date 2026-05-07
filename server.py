@@ -19,14 +19,21 @@ from os import PathLike
 
 
 APP_NAME = "SEARCHING"
-HOST = os.environ.get("HOST", "127.0.0.1")
+
+# --- FIX: Updated for Render Deployment ---
+# Changed default to 0.0.0.0 so Render can detect the port
+HOST = os.environ.get("HOST", "0.0.0.0") 
 PORT = int(os.environ.get("PORT", "8080"))
+# ------------------------------------------
+
 BASE_DIR = Path(__file__).resolve().parent
 GOOGLE_TRENDS_RSS = "https://trends.google.com/trending/rss"
 GEO = "US"
 REFRESH_SECONDS = 300
 MAX_TRENDS = 24
-USER_AGENT = "Searching/1.0 (+http://127.0.0.1)"
+
+# Updated User Agent to match the deployment host
+USER_AGENT = f"Searching/1.0 (+http://{HOST})"
 
 
 CATEGORY_MAP = {
@@ -51,6 +58,7 @@ CATEGORY_MAP = {
     "travel and transportation": "Travel and Transportation",
 }
 
+# ... [Taxonomy and helper functions remain the same as your previous version] ...
 
 TAXONOMY = [
     {
@@ -239,37 +247,30 @@ TAXONOMY = [
     },
 ]
 
-
 @dataclass
 class SceneCache:
     payload: dict[str, Any] | None = None
     fetched_at: float = 0.0
     error: str | None = None
 
-
 cache = SceneCache()
-
 
 def stable_float(seed: str, salt: str) -> float:
     digest = hashlib.sha256(f"{seed}:{salt}".encode("utf-8")).hexdigest()
     return int(digest[:12], 16) / float(0xFFFFFFFFFFFF)
 
-
 def stable_choice(seed: str, salt: str, values: tuple[str, ...]) -> str:
     index = int(stable_float(seed, salt) * len(values)) % len(values)
     return values[index]
 
-
 def clamp(value: float, minimum: float, maximum: float) -> float:
     return max(minimum, min(maximum, value))
-
 
 def normalize_text(text: str) -> str:
     lowered = (text or "").lower()
     lowered = lowered.replace("&", " and ")
     lowered = re.sub(r"[^a-z0-9\s]+", " ", lowered)
     return re.sub(r"\s+", " ", lowered).strip()
-
 
 def parse_traffic_value(text: str) -> int:
     clean = (text or "").replace(",", "").replace("+", "").strip().upper()
@@ -284,14 +285,12 @@ def parse_traffic_value(text: str) -> int:
     except ValueError:
         return 500
 
-
 def score_keywords(haystack: str, keywords: tuple[str, ...]) -> int:
     score = 0
     for keyword in keywords:
         if keyword in haystack:
             score += 1 + keyword.count(" ")
     return score
-
 
 def map_rss_categories(categories: list[str]) -> list[str]:
     mapped: list[str] = []
@@ -302,7 +301,6 @@ def map_rss_categories(categories: list[str]) -> list[str]:
                 if pretty not in mapped:
                     mapped.append(pretty)
     return mapped
-
 
 def classify_trend(title: str, categories: list[str], news_items: list[dict[str, str]]) -> tuple[str, str, list[str], dict[str, Any]]:
     parts = [title]
@@ -354,7 +352,6 @@ def classify_trend(title: str, categories: list[str], news_items: list[dict[str,
         path.append(best_subcategory)
     return category, best_subcategory, path, {"score": best_score, "rssMatches": rss_matches}
 
-
 def visual_dna(title: str, category: str, subcategory: str, traffic_value: int) -> dict[str, Any]:
     seed = f"{title.strip().lower()}::{category}::{subcategory}"
     prominence = clamp((traffic_value ** 0.5) / 1000, 0.18, 1.0)
@@ -373,18 +370,15 @@ def visual_dna(title: str, category: str, subcategory: str, traffic_value: int) 
         "prominence": prominence,
     }
 
-
 def text_of(element: ET.Element, tag: str) -> str:
     found = element.find(tag)
     return (found.text or "").strip() if found is not None else ""
-
 
 def namespaced_text(element: ET.Element, local_name: str) -> str:
     for child in element:
         if child.tag.endswith(f"}}{local_name}") or child.tag == local_name:
             return (child.text or "").strip()
     return ""
-
 
 def item_categories(item: ET.Element) -> list[str]:
     categories: list[str] = []
@@ -396,7 +390,6 @@ def item_categories(item: ET.Element) -> list[str]:
         if category and category not in categories:
             categories.append(category)
     return categories or ["Other"]
-
 
 def parse_rss(xml_bytes: bytes) -> dict[str, Any]:
     root = ET.fromstring(xml_bytes)
@@ -461,7 +454,6 @@ def parse_rss(xml_bytes: bytes) -> dict[str, Any]:
         "trends": trends,
     }
 
-
 def fetch_scene(force: bool = False) -> dict[str, Any]:
     now = time.time()
     if not force and cache.payload and now - cache.fetched_at < REFRESH_SECONDS:
@@ -486,7 +478,6 @@ def fetch_scene(force: bool = False) -> dict[str, Any]:
     cache.fetched_at = now
     cache.error = None
     return payload
-
 
 class SearchingHandler(SimpleHTTPRequestHandler):
     server_version = "SearchingHTTP/1.0"
@@ -542,18 +533,17 @@ class SearchingHandler(SimpleHTTPRequestHandler):
             return "text/css"
         return mimetypes.guess_type(path_str)[0] or "application/octet-stream"
 
-
 def main() -> None:
+    # --- FIX: Added specific host/port print for Render ---
     server = ThreadingHTTPServer((HOST, PORT), SearchingHandler)
-    print(f"{APP_NAME} serving http://{HOST}:{PORT}")
-    print(f"Scene endpoint: http://{HOST}:{PORT}/api/scene")
+    print(f"{APP_NAME} live on http://{HOST}:{PORT}")
+    # ------------------------------------------------------
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nShutting down.")
     finally:
         server.server_close()
-
 
 if __name__ == "__main__":
     main()
